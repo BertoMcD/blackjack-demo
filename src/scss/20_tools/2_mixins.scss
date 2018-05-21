@@ -1,0 +1,350 @@
+@mixin media-breakpoint-up($name, $breakpoints: $grid-breakpoints) {
+	$min: breakpoint-min($name, $breakpoints);
+	@if $min {
+		@media (min-width: $min) {
+			@content;
+		}
+	} @else {
+		@content;
+	}
+}
+
+@mixin media-breakpoint-down($name, $breakpoints: $grid-breakpoints) {
+	$max: breakpoint-max($name, $breakpoints);
+	@if $max {
+		@media (max-width: $max) {
+			@content;
+		}
+	} @else {
+		@content;
+	}
+}
+
+@mixin media-breakpoint-between($lower, $upper, $breakpoints: $grid-breakpoints) {
+	@include media-breakpoint-up($lower, $breakpoints) {
+		@include media-breakpoint-down($upper, $breakpoints) {
+			@content;
+		}
+	}
+}
+
+@mixin media-breakpoint-only($name, $breakpoints: $grid-breakpoints) {
+	@include media-breakpoint-between($name, $name, $breakpoints) {
+		@content;
+	}
+}
+
+// Retina Display
+@mixin img-retina($file, $type, $width, $height) {
+	background: url(#{$imagePath}#{$file}.#{$type}) no-repeat 0 0;
+
+	@media
+	only screen and (min-resolution: 192dpi),
+	only screen and (min-resolution: 2dppx) {
+		background-image: url(#{$imagePath}#{$file}@2x.#{$type});
+		background-size: $width $height;
+	}
+}
+
+// Container
+@mixin make-container() {
+	position: relative;
+	margin-left: auto;
+	margin-right: auto;
+
+	@if variable-exists(grid-gutter-widths) {
+		@each $breakpoint in map-keys($grid-gutter-widths) {
+			@include media-breakpoint-up($breakpoint) {
+				$gutter: map-get($grid-gutter-widths, $breakpoint);
+				padding: {
+					left: ($gutter / 2);
+					right: ($gutter / 2);
+				}
+			}
+		}
+	} @else {
+		padding: {
+			left: ($grid-gutter-width-base / 2);
+			right: ($grid-gutter-width-base / 2);
+		}
+	}
+}
+
+// Center
+@mixin make-center($max-widths: $container-max-widths, $breakpoints: $grid-breakpoints) {
+	@each $breakpoint, $container-max-width in $max-widths {
+		@include media-breakpoint-up($breakpoint, $breakpoints) {
+			max-width: calc(#{$container-max-width} + #{$paddingWidth} * 2);
+		}
+	}
+}
+
+// Make Columns
+@mixin make-grid-columns($columns: $grid-columns, $breakpoints: $grid-breakpoints) {
+	.column {
+		max-width: 100%;
+		position: relative;
+		width: 100%;
+		min-height: 1px;
+		@include make-gutters();
+
+		.flex-children & {
+			display: flex;
+		}
+
+		&-box {
+			width: 100%;
+		}
+	}
+	@each $breakpoint in map-keys($breakpoints) {
+		$infix: breakpoint-infix($breakpoint, $breakpoints);
+
+		@include media-breakpoint-up($breakpoint, $breakpoints) {
+			.col#{$infix} {
+				flex-basis: 0;
+				flex-grow: 1;
+			}
+			.col#{$infix}-auto {
+				flex: 0 0 auto;
+				width: auto;
+			}
+
+			@for $i from 1 through $columns {
+				.col#{$infix}-#{$i} {
+					@include make-col($i, $columns);
+				}
+			}
+
+			@each $modifier in (pull, push) {
+				@for $i from 0 through $columns {
+					.#{$modifier}#{$infix}-#{$i} {
+						@include make-col-modifier($modifier, $i, $columns);
+					}
+				}
+			}
+
+			@for $i from 0 through ($columns - 1) {
+				@if not ($infix == "" and $i == 0) {
+					.offset#{$infix}-#{$i} {
+						@include make-col-modifier(offset, $i, $columns);
+					}
+				}
+			}
+			.offset-left#{$infix}-auto {
+				margin-left: auto;
+			}
+			.offset-right#{$infix}-auto {
+				margin-right: auto;
+			}
+		}
+	}
+}
+
+// Grid system
+@mixin make-gutters() {
+	@if variable-exists(grid-gutter-widths) {
+		@each $breakpoint in map-keys($grid-gutter-widths) {
+			@include media-breakpoint-up($breakpoint) {
+				$gutter: map-get($grid-gutter-widths, $breakpoint);
+				padding: {
+					left: ($gutter / 2);
+					right: ($gutter / 2);
+				}
+			}
+		}
+	} @else {
+		padding: {
+			left: ($grid-gutter-width-base / 2);
+			right: ($grid-gutter-width-base / 2);
+		}
+	}
+}
+
+@mixin make-row() {
+	display: flex;
+	flex-wrap: wrap;
+
+	@if variable-exists(grid-gutter-widths) {
+		@each $breakpoint in map-keys($grid-gutter-widths) {
+			@include media-breakpoint-up($breakpoint) {
+				$gutter: map-get($grid-gutter-widths, $breakpoint);
+				margin: {
+					left: ($gutter / -2);
+					right: ($gutter / -2);
+				}
+			}
+		}
+	} @else {
+		margin: {
+			left: ($grid-gutter-width-base / -2);
+			right: ($grid-gutter-width-base / -2);
+		}
+	}
+}
+
+@mixin make-col($size, $columns: $grid-columns) {
+	flex: 0 0 percentage($size / $columns);
+	max-width: percentage($size / $columns);
+}
+
+@mixin make-col-offset($size, $columns: $grid-columns) {
+	margin-left: percentage($size / $columns);
+}
+
+@mixin make-col-push($size, $columns: $grid-columns) {
+	left: if($size > 0, percentage($size / $columns), auto);
+}
+
+@mixin make-col-pull($size, $columns: $grid-columns) {
+	right: if($size > 0, percentage($size / $columns), auto);
+}
+
+@mixin make-col-modifier($type, $size, $columns) {
+	@if $type == push {
+		@include make-col-push($size, $columns);
+	} @else if $type == pull {
+		@include make-col-pull($size, $columns);
+	} @else if $type == offset {
+		@include make-col-offset($size, $columns);
+	}
+}
+
+/// Triangle helper mixin
+/// @param {Direction} $direction - Triangle direction, either `top`, `right`, `bottom` or `left`
+/// @param {Color} $color [currentcolor] - Triangle color
+/// @param {Length} $size [1em] - Triangle size
+@mixin triangle($direction, $color: currentcolor, $size: 1em) {
+	@if not index(top right bottom left, $direction) {
+		@error "Direction must be either `top`, `right`, `bottom` or `left`.";
+	}
+
+	width: 0;
+	height: 0;
+	content: '';
+	z-index: 2;
+	border-#{opposite-direction($direction)}: ($size * 1.5) solid $color;
+
+	$perpendicular-borders: $size solid transparent;
+
+	@if $direction == top or $direction == bottom {
+		border-left:   $perpendicular-borders;
+		border-right:  $perpendicular-borders;
+	} @else if $direction == right or $direction == left {
+		border-bottom: $perpendicular-borders;
+		border-top:    $perpendicular-borders;
+	}
+}
+
+// Ellipsis
+@mixin ellipsis($max-width: 100%) {
+	max-width: $max-width;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@mixin fluid-type($min-vw, $max-vw, $min-font-size, $max-font-size) {
+	$u1: unit($min-vw);
+	$u2: unit($max-vw);
+	$u3: unit($min-font-size);
+	$u4: unit($max-font-size);
+
+	@if $u1 == $u2 and $u1 == $u3 and $u1 == $u4 {
+		& {
+			font-size: $min-font-size;
+			@media screen and (min-width: $min-vw) {
+				font-size: calc(#{$min-font-size} + #{strip-unit($max-font-size - $min-font-size)} * ((100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)}));
+			}
+
+			@media screen and (min-width: $max-vw) {
+				font-size: $max-font-size;
+			}
+		}
+	}
+}
+
+/// Mixin to customize scrollbars
+/// Beware, this does not work in all browsers
+/// @author Hugo Giraudel
+/// @param {Length} $size - Horizontal scrollbar's height and vertical scrollbar's width
+/// @param {Color} $foreground-color - Scrollbar's color
+/// @param {Color} $background-color [mix($foreground-color, white, 50%)] - Scrollbar's color
+/// @example scss - Scrollbar styling
+///   @include scrollbars(.5em, slategray);
+@mixin scrollbars($size, $foreground-color, $background-color: mix($foreground-color, white,  50%)) {
+	// For Google Chrome
+	::-webkit-scrollbar {
+			width:  $size;
+			height: $size;
+	}
+
+	::-webkit-scrollbar-thumb {
+			background: $foreground-color;
+	}
+
+	::-webkit-scrollbar-track {
+			background: $background-color;
+	}
+
+	// For Internet Explorer
+	body {
+		scrollbar-face-color: $foreground-color;
+		scrollbar-track-color: $background-color;
+	}
+}
+
+/// Returns the luminance of `$color` as a float (between 0 and 1)
+/// 1 is pure white, 0 is pure black
+/// @param {Color} $color - Color
+/// @return {Number}
+/// @link http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef Reference
+@function luminance($color) {
+	$colors: (
+		'red': red($color),
+		'green': green($color),
+		'blue': blue($color)
+	);
+
+	@each $name, $value in $colors {
+		$adjusted: 0;
+		$value: $value / 255;
+
+		@if $value < 0.03928 {
+			$value: $value / 12.92;
+		} @else {
+			$value: ($value + .055) / 1.055;
+			$value: pow($value, 2.4);
+		}
+
+		$colors: map-merge($colors, ($name: $value));
+	}
+
+	@return (map-get($colors, 'red') * .2126) + (map-get($colors, 'green') * .7152) + (map-get($colors, 'blue') * .0722);
+}
+
+/// Stripe builder
+/// @author Hugo Giraudel
+/// @param {Direction} $direction - Gradient direction
+/// @param {List} $colors - List of colors
+/// @output `background-image` if several colors, `background-color` if only one
+@mixin stripes($direction, $colors) {
+	$length: length($colors);
+
+	@if $length > 1 {
+		$stripes: ();
+
+		@for $i from 1 through $length {
+			$stripe: (100% / $length) * ($i - 1);
+
+			@if $i > 1 {
+				$stripes: append($stripes, nth($colors, $i - 1) $stripe, comma);
+			}
+
+			$stripes: append($stripes, nth($colors, $i) $stripe, comma);
+		}
+
+		background-image: linear-gradient($direction, $stripes);
+	} @else if $length == 1 {
+		background-color: $colors;
+	}
+}

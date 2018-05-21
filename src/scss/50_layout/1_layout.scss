@@ -1,0 +1,34 @@
+@if variable-exists(grid-columns) {
+	// Columns
+	.container {
+		@include make-container;
+	}
+	.row {
+		@include make-row;
+		&.-center {
+			justify-content: center;
+			> .col {
+				flex-grow: 0;
+			}
+		}
+
+		&.collapse {
+			margin: 0;
+		}
+	}
+	.no-gutters {
+		margin: {
+			left: 0;
+			right: 0;
+		}
+
+		> .col {
+			padding: {
+				left: 0;
+				right: 0;
+			}
+		}
+	}
+
+	@include make-grid-columns;
+}

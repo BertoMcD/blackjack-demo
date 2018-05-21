@@ -1,0 +1,28 @@
+.button {
+	display: inline-block;
+	background: $blue;
+	color: $white;
+	appearance: none;
+	border: none;
+	text-align: center;
+	width: 100%;
+	max-width: 100px;
+	margin: 10px auto 0;
+	padding: 10px;
+	cursor: pointer;
+	outline: none;
+	&:hover {
+		background: darken($blue, 5%);
+	}
+	&.-yellow {
+		background: $yellow;
+		&:hover {
+			background: darken($yellow, 5%);
+		}
+	}
+}
+
+.reset-btn {
+	display: block;
+	margin: 10px auto 0;
+}

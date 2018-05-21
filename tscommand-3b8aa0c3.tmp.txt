@@ -1,0 +1,1 @@
+src/ts/main.ts src/ts/player.ts --sourcemap --removeComments --rootDir src/ts/ --target ES5 --module umd --outDir dev/js

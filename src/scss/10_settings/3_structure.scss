@@ -1,0 +1,20 @@
+// Content width
+$container-max-widths: (
+	xl: 1200px
+);
+
+$paddingWidth: 0px;
+
+// Break Points
+$grid-breakpoints: (
+	ss: 0,
+	xs: 321px,
+	sm: 576px,
+	md: 768px,
+	lg: 1120px,
+	xl: 1600px
+);
+
+// Columns
+$grid-columns: 12;
+$grid-gutter-width-base: 20px;
