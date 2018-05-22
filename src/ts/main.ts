@@ -56,51 +56,65 @@ class Deck {
 class Player {
 	private hand: any;
 	public playerId: number;
-	public playerRow: any;
 	protected handTotal: number;
 	protected altTotal: number;
-	public status: string;
+	public inPlay: boolean;
+	protected score: number;
+	public plDisplay: any;
+	public plLabel: any;
+	public handRow: any;
+	public hitBtn: any;
+	public stayBtn: any;
+	public scoreBoard: any;
 
 	constructor(id: number) {
 		this.hand = [];
 		this.playerId = id;
 		this.handTotal = 0;
 		this.altTotal = 0;
-		this.status = 'in-play';
+		this.score = 0;
+		this.inPlay = true;
 		this.addPlayer();
 	}
 
 	public addPlayer() {
-		this.playerRow = <HTMLElement> document.querySelector('.js-players');
-		this.playerRow.innerHTML = "";
-		let player = document.createElement('div'),
-			label = document.createElement('h2'),
-			hand = document.createElement('div'),
-			hit = document.createElement('button'),
-			stay = document.createElement('button');
+		let playerRow = <HTMLElement> document.querySelector('.js-players');
+		playerRow.innerHTML = "";
+		this.plDisplay = document.createElement('div');
+		this.plLabel = document.createElement('h2');
+		this.handRow = document.createElement('div');
+		this.hitBtn = document.createElement('button');
+		this.stayBtn = document.createElement('button');
+		this.scoreBoard = document.createElement('span');
 
-		player.setAttribute('class', 'player-display js-player');
+		this.plDisplay.setAttribute('class', 'player-display js-player');
 
-		label.innerText = `Player ${this.playerId}`;
-		label.setAttribute('class', 'label');
-		hand.setAttribute('class', 'player-hand js-player-hand');
-		hand.setAttribute('id', `player-${this.playerId}`);
-		hand.setAttribute('data-player', `${this.playerId}`);
+		this.plLabel.innerText = `Player `;
+		this.plLabel.setAttribute('class', 'label');
+		this.handRow.setAttribute('class', 'player-hand js-player-hand');
+		this.handRow.setAttribute('id', `player-${this.playerId}`);
+		this.handRow.setAttribute('data-player', `${this.playerId}`);
 
-		hit.setAttribute('class', 'button hit js-hit');
-		hit.setAttribute('data-player', `${this.playerId}`);
-		hit.innerText = 'Hit';
+		this.hitBtn.setAttribute('class', 'button hit js-hit');
+		this.hitBtn.setAttribute('data-player', `${this.playerId}`);
+		this.hitBtn.innerText = 'Hit';
 
-		stay.setAttribute('class', 'button stay js-stay');
-		stay.setAttribute('data-player', `${this.playerId}`);
-		stay.innerText = 'Stay';
+		this.stayBtn.setAttribute('class', 'button stay js-stay');
+		this.stayBtn.setAttribute('data-player', `${this.playerId}`);
+		this.stayBtn.innerText = 'Stay';
 
-		player.appendChild(label);
-		player.appendChild(hand);
-		player.appendChild(hit);
-		player.appendChild(stay);
+		this.scoreBoard.setAttribute('class', 'js-score');
+		this.scoreBoard.setAttribute('id', `pl-score-${this.playerId}`);
+		this.scoreBoard.textContent = this.score.toString();
 
-		this.playerRow.append(player);
+		this.plLabel.appendChild(this.scoreBoard);
+
+		this.plDisplay.appendChild(this.plLabel);
+		this.plDisplay.appendChild(this.handRow);
+		this.plDisplay.appendChild(this.hitBtn);
+		this.plDisplay.appendChild(this.stayBtn);
+
+		playerRow.appendChild(this.plDisplay);
 	}
 
 	public addCard(card) {
@@ -121,7 +135,7 @@ class Player {
 	}
 
 	public displayCard(card) {
-		let hand = <HTMLElement> this.playerRow.querySelector('#player-' + this.playerId),
+		let hand = <HTMLElement> this.plDisplay.querySelector('#player-' + this.playerId),
 			faceCards = {
 				1: 'A',
 				11: 'J',
@@ -137,7 +151,15 @@ class Player {
 		`;
 	}
 
-	public getTotal() {
+	public clearHand() {
+		let hand = <HTMLElement> this.plDisplay.querySelector('#player-' + this.playerId);
+		hand.innerHTML = '';
+		this.hand = [];
+		this.handTotal = 0;
+		this.altTotal = 0;
+	}
+
+	public getHandTotal() {
 		if (this.handTotal > 21 && this.altTotal > 21) {
 			return this.handTotal
 		} else if (this.handTotal <= 21 && this.altTotal <= 21) {
@@ -150,108 +172,141 @@ class Player {
 			return this.handTotal < this.altTotal ? this.handTotal : this.altTotal;
 		}
 	}
+
+	public hideUi() {
+		this.hitBtn.className += ' _hidden';
+		this.stayBtn.className += ' _hidden';
+	}
+
+	public showUi() {
+		this.hitBtn.classList.remove('_hidden');
+		this.stayBtn.classList.remove('_hidden');
+	}
+
+	public win() {
+		this.score++;
+		this.scoreBoard.textContent = this.score.toString();
+	}
 }
 
 class Dealer extends Player {
 	addPlayer() {
-		this.playerRow = <HTMLElement> document.querySelector('.js-dealer');
-		this.playerRow.innerHTML = "";
-		let player = document.createElement('div'),
-			label = document.createElement('h2'),
-			hand = document.createElement('div');
+		let playerRow = <HTMLElement> document.querySelector('.js-dealer');
+		playerRow.innerHTML = "";
+		this.plDisplay = document.createElement('div');
+		this.plLabel = document.createElement('h2');
+		this.handRow = document.createElement('div');
+		this.scoreBoard = document.createElement('span');
 
-		player.setAttribute('class', 'player-display js-player');
+		this.plDisplay.setAttribute('class', 'player-display js-player');
 
-		label.innerText = `Dealer`;
-		label.setAttribute('class', 'label');
-		hand.setAttribute('class', 'player-hand js-player-hand -dealer');
-		hand.setAttribute('id', `player-${this.playerId}`);
-		hand.setAttribute('data-player', `${this.playerId}`);
+		this.plLabel.innerText = `Player `;
+		this.plLabel.setAttribute('class', 'label');
+		this.handRow.setAttribute('class', 'player-hand js-player-hand -dealer');
+		this.handRow.setAttribute('id', `player-${this.playerId}`);
+		this.handRow.setAttribute('data-player', `${this.playerId}`);
 
-		player.appendChild(label);
-		player.appendChild(hand);
+		this.scoreBoard.setAttribute('class', 'js-score');
+		this.scoreBoard.setAttribute('id', `pl-score-${this.playerId}`);
+		this.scoreBoard.textContent = this.score.toString();
 
-		this.playerRow.append(player);
+		this.plLabel.appendChild(this.scoreBoard);
+
+		this.plDisplay.appendChild(this.plLabel);
+		this.plDisplay.appendChild(this.handRow);
+
+		playerRow.appendChild(this.plDisplay);
 	}
 }
 
 class Game {
 	private deck: Deck;
+	public deckCount: number;
 	public players: any;
-	public winner: any;
+	public resetBtn: any;
 
-	constructor(playerCount: number = 1, decks:number = 2) {
-		this.deck = new Deck(decks);
+	constructor(playerCount: number = 1, decks:number = 1) {
+		this.deckCount = decks;
+		this.deck = new Deck(this.deckCount);
 		this.players = new Array(++playerCount);
 		this.assignPlayers(playerCount);
+		this.resetBtn = document.querySelector('.js-reset');
+		this.resetBtn.addEventListener('click', this.newHand);
+	}
+
+	private shuffle() {
+		this.deck = new Deck(this.deckCount);
 	}
 
 	private assignPlayers(playerCount) {
 		this.players[0] = new Dealer(0);
 		for (let i = 1; i < playerCount; i++) {
 			this.players[i] = new Player(i);
-			let hitBtn = this.players[i].playerRow.querySelector('.js-hit');
-			hitBtn.addEventListener("click", this.hit);
-			let stayBtn = this.players[i].playerRow.querySelector('.js-stay');
-			stayBtn.addEventListener("click", this.stay);
+			this.players[i].hitBtn.addEventListener("click", this.hit);
+			this.players[i].stayBtn.addEventListener("click", this.stay);
 		}
 	}
 
 	public dealCards() {
-		for (let i = 0; i < this.players.length; i++) {
-			this.players[i].addCard(this.deck.drawCard());
-		}
-	}
-
-	private evaluateScore(action: string = 'hit') {
-		for (let i = 1; i < this.players.length; ++i) {
-			let score = this.players[i].getTotal(),
-				dealerScr = this.players[0].getTotal();
-
-			if (action == 'stay' && dealerScr == 21 && score <= 21) {
-				this.winner = this.players[0];
-				this.endGame();
-			} else if (action == 'stay' && dealerScr > 21 && score <= 21) {
-				this.winner = this.players[i];
-				this.endGame();
-			} else {
-				if (score == 21) {
-					this.winner = this.players[i];
-					this.endGame(dealerScr == 21);
-				} else if (score > 21) {
-					this.winner = this.players[0];
-					this.endGame(dealerScr > 21);
-				} else if (score < 21 && action == 'stay') {
-					if (score == dealerScr) {
-						this.endGame(true);
-					} else if (score > dealerScr && dealerScr < 21) {
-						this.winner = this.players[i];
-						this.endGame();
-					} else if (score < dealerScr && dealerScr < 21) {
-						this.winner = this.players[0];
-						this.endGame();
-					}
-				}
+		for (var i = 0; i < 2; i++) {
+			for (let i = 0; i < this.players.length; i++) {
+				this.players[i].addCard(this.deck.drawCard());
 			}
 		}
+		this.evaluateScore('initial');
 	}
 
-	private endGame(draw: boolean = false) {
-		let message = '';
-		if (draw) {
-			message = "Push";
-		} else {
-			message = this.winner.playerId == 0 ? "Dealer Wins" : `Player ${this.winner.playerId}`;
-		}
-		for (let i = 1; i < this.players.length; i++) {
-			let player = this.players[i].playerRow;
-			player.querySelector('.js-hit').className += ' _hidden';
-			player.querySelector('.js-stay').className += ' _hidden';
-		}
-		document.querySelector('.js-result').textContent = message;
-		if (this.winner.playerId > 0 && !draw) {
-			this.players[0].playerRow.querySelector('.js-player-hand').className += ' -reveal'
-		}
+	private evaluateScore(action: string) {
+		// for (let i = 1; i < this.players.length; ++i) {
+			let playerHand = this.players[1].getHandTotal(),
+				dealerHand = this.players[0].getHandTotal();
+
+			if (action == 'initial') {
+				if (playerHand == 21 && dealerHand != 21) {
+					this.players[1].win();
+					this.players[1].hideUi();
+					this.endGame();
+				}
+			}
+			if (action == 'hit') {
+				if (playerHand > 21) {
+					this.players[0].win();
+					this.players[1].hideUi();
+					this.endGame();
+				}
+			}
+			if (action == 'stay') {
+				if ((playerHand == 21 && dealerHand != 21) || (playerHand < 21 && dealerHand > 21)) {
+					this.players[1].win();
+				} else if (playerHand < 21 && dealerHand < 21) {
+					if (playerHand == dealerHand) {
+						this.players[0].win();
+					} else if (playerHand > dealerHand) {
+						this.players[1].win();
+					} else {
+						this.players[0].win();
+					}
+				}
+				this.players[1].hideUi();
+				this.endGame();
+			}
+		// }
+	}
+
+	public endGame() {
+		this.resetBtn.classList.remove('_hidden');
+	}
+
+	public startGame() {
+		this.resetBtn.className += ' _hidden';
+	}
+
+	public newHand = () => {
+		this.shuffle();
+		this.players[0].clearHand();
+		this.players[1].clearHand();
+		this.players[1].showUi();
+		this.dealCards();
 	}
 
 	private hit = (e) => {
@@ -259,35 +314,27 @@ class Game {
 			let id = parseInt(e.target.dataset.player);
 			this.players[id].addCard(this.deck.drawCard());
 
-			let dealerTotal = this.players[0].getTotal();
+			let dealerTotal = this.players[0].getHandTotal();
 			if (dealerTotal <= 16) {
 				this.players[0].addCard(this.deck.drawCard());
 			}
-			this.evaluateScore();
+			this.evaluateScore('hit');
 		}
 	}
 
 	private stay = (e) => {
 		let id = parseInt(e.target.dataset.player),
-			dealerTotal = this.players[0].getTotal();
+			dealerTotal = this.players[0].getHandTotal();
 
 		if (dealerTotal <= 16) {
 			do {
 				this.players[0].addCard(this.deck.drawCard());
-				dealerTotal = this.players[0].getTotal();
+				dealerTotal = this.players[0].getHandTotal();
 			} while (dealerTotal <= 16);
 		}
 		this.evaluateScore('stay');
 	}
 }
 
-var game = new Game(1, 6);
+var game = new Game();
 game.dealCards();
-
-function reset() {
-	game = new Game(1, 6);
-	game.dealCards();
-	document.querySelector('.js-result').textContent = '';
-}
-
-document.querySelector('.js-reset').addEventListener('click', reset);
