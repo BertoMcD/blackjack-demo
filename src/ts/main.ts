@@ -64,7 +64,7 @@ class Player {
 	public plLabel: any;
 	public handRow: any;
 	public hitBtn: any;
-	public stayBtn: any;
+	public holdBtn: any;
 	public scoreBoard: any;
 
 	constructor(id: number) {
@@ -84,7 +84,7 @@ class Player {
 		this.plLabel = document.createElement('h2');
 		this.handRow = document.createElement('div');
 		this.hitBtn = document.createElement('button');
-		this.stayBtn = document.createElement('button');
+		this.holdBtn = document.createElement('button');
 		this.scoreBoard = document.createElement('span');
 
 		this.plDisplay.setAttribute('class', 'player-display js-player');
@@ -99,9 +99,9 @@ class Player {
 		this.hitBtn.setAttribute('data-player', `${this.playerId}`);
 		this.hitBtn.innerText = 'Hit';
 
-		this.stayBtn.setAttribute('class', 'button stay js-stay');
-		this.stayBtn.setAttribute('data-player', `${this.playerId}`);
-		this.stayBtn.innerText = 'Stay';
+		this.holdBtn.setAttribute('class', 'button hold js-hold');
+		this.holdBtn.setAttribute('data-player', `${this.playerId}`);
+		this.holdBtn.innerText = 'Hold';
 
 		this.scoreBoard.setAttribute('class', 'js-score');
 		this.scoreBoard.setAttribute('id', `pl-score-${this.playerId}`);
@@ -112,7 +112,7 @@ class Player {
 		this.plDisplay.appendChild(this.plLabel);
 		this.plDisplay.appendChild(this.handRow);
 		this.plDisplay.appendChild(this.hitBtn);
-		this.plDisplay.appendChild(this.stayBtn);
+		this.plDisplay.appendChild(this.holdBtn);
 
 		playerRow.appendChild(this.plDisplay);
 	}
@@ -175,12 +175,12 @@ class Player {
 
 	public hideUi() {
 		this.hitBtn.className += ' _hidden';
-		this.stayBtn.className += ' _hidden';
+		this.holdBtn.className += ' _hidden';
 	}
 
 	public showUi() {
 		this.hitBtn.classList.remove('_hidden');
-		this.stayBtn.classList.remove('_hidden');
+		this.holdBtn.classList.remove('_hidden');
 	}
 
 	public win() {
@@ -243,7 +243,7 @@ class Game {
 		for (let i = 1; i < playerCount; i++) {
 			this.players[i] = new Player(i);
 			this.players[i].hitBtn.addEventListener("click", this.hit);
-			this.players[i].stayBtn.addEventListener("click", this.stay);
+			this.players[i].holdBtn.addEventListener("click", this.hold);
 		}
 	}
 
@@ -275,7 +275,7 @@ class Game {
 					this.endGame();
 				}
 			}
-			if (action == 'stay') {
+			if (action == 'hold') {
 				if ((playerHand == 21 && dealerHand != 21) || (playerHand < 21 && dealerHand > 21)) {
 					this.players[1].win();
 				} else if (playerHand < 21 && dealerHand < 21) {
@@ -322,7 +322,7 @@ class Game {
 		}
 	}
 
-	private stay = (e) => {
+	private hold = (e) => {
 		let id = parseInt(e.target.dataset.player),
 			dealerTotal = this.players[0].getHandTotal();
 
@@ -332,7 +332,7 @@ class Game {
 				dealerTotal = this.players[0].getHandTotal();
 			} while (dealerTotal <= 16);
 		}
-		this.evaluateScore('stay');
+		this.evaluateScore('hold');
 	}
 }
 
