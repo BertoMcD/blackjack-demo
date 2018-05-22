@@ -66,6 +66,7 @@ class Player {
 	public hitBtn: any;
 	public holdBtn: any;
 	public scoreBoard: any;
+	public cardTotal: number;
 
 	constructor(id: number) {
 		this.hand = [];
@@ -74,6 +75,7 @@ class Player {
 		this.altTotal = 0;
 		this.score = 0;
 		this.inPlay = true;
+		this.cardTotal = 0;
 		this.addPlayer();
 	}
 
@@ -119,6 +121,7 @@ class Player {
 
 	public addCard(card) {
 		this.hand.push(card);
+		this.cardTotal++;
 
 		if (card['number'] == 1) {
 			this.handTotal++;
@@ -183,8 +186,8 @@ class Player {
 		this.holdBtn.classList.remove('_hidden');
 	}
 
-	public win() {
-		this.score++;
+	public win(double: boolean) {
+		this.score += double ? 2 : 1;
 		this.scoreBoard.textContent = this.score.toString();
 	}
 }
@@ -263,14 +266,14 @@ class Game {
 
 			if (action == 'initial') {
 				if (playerHand == 21 && dealerHand != 21) {
-					this.players[1].win();
+					this.players[1].win(true);
 					this.players[1].hideUi();
 					this.endGame();
 				}
 			}
 			if (action == 'hit') {
 				if (playerHand > 21) {
-					this.players[0].win();
+					this.players[0].win(this.players[0].cardTotal == 2);
 					this.players[1].hideUi();
 					this.endGame();
 				}
@@ -280,11 +283,11 @@ class Game {
 					this.players[1].win();
 				} else if (playerHand < 21 && dealerHand < 21) {
 					if (playerHand == dealerHand) {
-						this.players[0].win();
+						this.players[0].win(this.players[0].cardTotal == 2);
 					} else if (playerHand > dealerHand) {
 						this.players[1].win();
 					} else {
-						this.players[0].win();
+						this.players[0].win(this.players[0].cardTotal == 2);
 					}
 				}
 				this.players[1].hideUi();
@@ -315,7 +318,7 @@ class Game {
 			this.players[id].addCard(this.deck.drawCard());
 
 			let dealerTotal = this.players[0].getHandTotal();
-			if (dealerTotal <= 16) {
+			if (dealerTotal < 17) {
 				this.players[0].addCard(this.deck.drawCard());
 			}
 			this.evaluateScore('hit');
@@ -326,11 +329,11 @@ class Game {
 		let id = parseInt(e.target.dataset.player),
 			dealerTotal = this.players[0].getHandTotal();
 
-		if (dealerTotal <= 16) {
+		if (dealerTotal < 17) {
 			do {
 				this.players[0].addCard(this.deck.drawCard());
 				dealerTotal = this.players[0].getHandTotal();
-			} while (dealerTotal <= 16);
+			} while (dealerTotal < 17);
 		}
 		this.evaluateScore('hold');
 	}
